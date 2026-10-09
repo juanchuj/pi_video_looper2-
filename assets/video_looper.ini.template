@@ -143,6 +143,13 @@ gpio_pin_map =
 # pin 19 sends the "spacebar" to the looper, pausing the current video
 # pin 21 sends the "p" key and thus triggers the shutdown of the Raspberry Pi
 
+
+# Trigger polarity for all mapped GPIO pins:
+# true  (default) = internal pull-up, trigger when the pin is connected to Ground (buttons/switches)
+# false           = internal pull-down, trigger when the pin goes to 3.3V (active-high sensors, e.g. HC-SR501 PIR)
+gpio_pin_mode = true
+#gpio_pin_mode = false
+
 # you can disable the gpio control while a video is playing - in case of a looping video gpio control will never work
 # is meant to be used with one_shot_playback
 gpio_control_disabled_while_playback = false
