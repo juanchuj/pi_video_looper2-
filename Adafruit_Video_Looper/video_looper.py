@@ -124,6 +124,8 @@ class VideoLooper:
             self._keyboard_thread = threading.Thread(target=self._handle_keyboard_shortcuts, daemon=True)
             self._keyboard_thread.start()
         
+        # True = pull-up / trigger on HIGH->LOW (default); False = pull-down / LOW->HIGH
+        self._gpio_active_low = self._config.getboolean('control', 'gpio_pin_mode', fallback=True)
         pinMapSetting = self._config.get('control', 'gpio_pin_map', raw=True)
         if pinMapSetting:
             try:
@@ -474,7 +476,8 @@ class VideoLooper:
 
         for pin_name in self._pinMap.keys():
             self._pinMap[pin_name]["debouncer"].update()
-            if self._pinMap[pin_name]["debouncer"].fell:
+            _deb = self._pinMap[pin_name]["debouncer"]
+            if (_deb.fell if self._gpio_active_low else _deb.rose):
                 action = self._pinMap[pin_name]["action"]
                 self._print(f'pin {pin_name} triggered: {action}')
         
@@ -493,7 +496,7 @@ class VideoLooper:
             pin_obj = getattr(board, pin_name)
             dio_obj = digitalio.DigitalInOut(pin_obj)
             dio_obj.direction = digitalio.Direction.INPUT
-            dio_obj.pull = digitalio.Pull.UP
+            dio_obj.pull = digitalio.Pull.UP if self._gpio_active_low else digitalio.Pull.DOWN
 
             debounced_pin = Debouncer(dio_obj)
             pin_map_entry = {
