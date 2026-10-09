@@ -1,3 +1,54 @@
+## About this fork
+
+Fork of [adafruit/pi_video_looper2](https://github.com/adafruit/pi_video_looper2)
+that adds configurable GPIO trigger polarity.
+
+### What's different
+
+Upstream Video Looper 2 always enables the internal pull-up on mapped GPIO pins
+and triggers when the pin is pulled to Ground. That works for buttons, but
+**active-high sensors** — like the HC-SR501 PIR motion sensor, whose output goes
+to 3.3 V on detection — need an external transistor inverter.
+
+This fork brings back the `gpio_pin_mode` option from the original
+[pi_video_looper](https://github.com/adafruit/pi_video_looper):
+
+| `gpio_pin_mode` | Internal pull | Triggers when the pin… |
+|---|---|---|
+| `true` (default) | pull-up | goes to GND (HIGH → LOW) — upstream behaviour |
+| `false` | pull-down | goes to 3.3 V (LOW → HIGH) |
+
+If the option is omitted, behaviour is identical to upstream.
+
+### Example: HC-SR501 PIR, no extra parts
+
+```ini
+[control]
+gpio_pin_map = "D26" : 1
+gpio_pin_mode = false
+```
+
+| PIR | Raspberry Pi |
+|---|---|
+| VCC | pin 2 (5 V) |
+| GND | pin 39 (GND) |
+| OUT | pin 37 (GPIO26) |
+
+The looper has no cooldown, so set the PIR's jumper to **L** (single trigger) and its
+**Tx** time a little longer than the triggered video. That prevents a re-trigger
+from restarting the video midway.
+
+### Note on pin names
+
+The upstream template mentions BOARD numbering, but the code uses Blinka board
+names. Use `"D26"` (GPIO26 = physical pin 37), not `"37"`.
+
+### Changed files
+
+- `Adafruit_Video_Looper/video_looper.py`: reads `gpio_pin_mode`, sets
+  pull-up or pull-down accordingly, and triggers on `.fell` or `.rose`
+- `assets/video_looper.ini.template`: documents the new option
+- 
 # pi_video_looper2
 This is a forked & updated version of the original project [pi_video_looper](https://github.com/adafruit/pi_video_looper). It aims to support Raspberry Pi 4 & 5 and the latest Raspberry Pi OS.
 
